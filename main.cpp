@@ -1,43 +1,64 @@
 #include <iostream>
 #include <raylib.h>
 
-using namespace std;
+Color green_color = {173, 204, 96, 255};
+Color dark_green = {43, 51, 24, 255};
+
+const int CELL_SIZE = 30;
+const int CELL_COUNT = 25;
+
+class Food {
+public:
+    Vector2 position;
+    Texture2D texture;
+
+    Food() {
+        Image image = LoadImage("assets/avocado.png");
+        ImageResize(&image, CELL_SIZE, CELL_SIZE);
+        texture = LoadTextureFromImage(image);
+        UnloadImage(image);
+        position = GenerateRandomPos();
+    }
+
+    ~Food() {
+        UnloadTexture(texture);
+    }
+
+    Vector2 GenerateRandomPos() {
+        float x = GetRandomValue(0, CELL_COUNT-1);
+        float y = GetRandomValue(0, CELL_COUNT-1);
+        return Vector2{x, y};
+    }
+
+    
+    void DrawFood() {
+        //DrawRectangle(position.x * CELL_SIZE, position.y * CELL_SIZE, CELL_SIZE, CELL_SIZE, dark_green);
+        DrawTexture(texture, position.x * CELL_SIZE, position.y * CELL_SIZE, WHITE);
+    }
+};
+
+class Snake {
+public:
+
+};
 
 int main () {
 
-    const int screenWidth = 800;
-    const int screenHeight = 600;
-    int ball_x = 100;
-    int ball_y = 100;
-    int ball_speed_x = 5;
-    int ball_speed_y = 5;
-    int ball_radius = 15;
-
-    cout << "Hello World" << endl;
-
-    InitWindow(screenWidth, screenHeight, "My first RAYLIB program!");
+    InitWindow(CELL_SIZE*CELL_COUNT, CELL_SIZE*CELL_COUNT, "Retro Snake");
     SetTargetFPS(60);
 
-    while (WindowShouldClose() == false){
+    Food food = Food();
+    while(!WindowShouldClose()) {
         BeginDrawing();
-        ClearBackground(BLACK);
-        ball_x += ball_speed_x;
-        ball_y += ball_speed_y;
 
-        if(ball_x + ball_radius >= screenWidth  || ball_x - ball_radius <= 0)
-        {
-            ball_speed_x *= -1;
-        }
+        ClearBackground(green_color);
+        food.DrawFood();
 
-        if(ball_y + ball_radius >= screenHeight  || ball_y - ball_radius <= 0)
-        {
-            ball_speed_y *= -1;
-        }
-
-        DrawCircle(ball_x,ball_y,ball_radius, WHITE);
         EndDrawing();
     }
 
+
     CloseWindow();
+
     return 0;
 }
