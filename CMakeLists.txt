@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( snake_game )
+add_executable(${PROJECT_NAME} main.cpp)
+find_package(raylib 3.0 REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
