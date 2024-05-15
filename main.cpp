@@ -56,6 +56,7 @@ class Snake {
 public:
     std::vector<Vector2> body;
     std::vector<double> speed = std::vector<double>(2);
+    int score = 0;
 
     Snake() {
         body = std::vector<Vector2>(3);
@@ -63,6 +64,15 @@ public:
         body[1] = {5,4};
         body[2] = {6,4};
         speed = {0,0};
+    }
+
+    void Reset() {
+        body.resize(3);
+        body[0] = {4,4};
+        body[1] = {5,4};
+        body[2] = {6,4};
+        speed = {0,0};
+        score = 0;
     }
 
     void DrawSnake() {
@@ -79,11 +89,13 @@ public:
         body[0].x += speed[0];
         body[0].y += speed[1];
 
-        if (body[0].x > CELL_COUNT) {
+        if (body[0].x >= CELL_COUNT) {
             body[0].x = 0;
         } else if (body[0].x < 0) {
             body[0].x = CELL_COUNT;
-        } else if (body[0].y > CELL_COUNT) {
+        }
+        
+        if (body[0].y >= CELL_COUNT) {
             body[0].y = 0;
         } else if (body[0].y < 0) {
             body[0].y = CELL_COUNT;
@@ -98,12 +110,20 @@ public:
             return false;
     }
 
+    void Grow() {
+        Vector2 head = body[0];
+        head.x += speed[0];
+        head.y += speed[1];
+        body.insert(body.begin(), head);
+        score++;
+    }
+
     bool DetectCollision() {
         Vector2 head_position = body[0];
-        auto do_not_match = [head_position](Vector2 elem) {
-            return (elem.x != head_position.x) && (elem.y != head_position.y);
+        auto matches = [head_position](Vector2 elem) {
+            return (elem.x == head_position.x) && (elem.y == head_position.y);
         };
-        if (std::all_of(body.cbegin()+1, body.cend(), do_not_match)) {
+        if (std::any_of(body.begin()+3, body.end(), matches)) {
             return true;
         }
         return false;
@@ -142,6 +162,7 @@ int main () {
                 snake.MoveSnake();
                 if (snake.DetectFoodEaten(food)) {
                     food.CalculateNewPosition(snake.body);
+                    snake.Grow();
                 }
 
                 if (snake.DetectCollision()) {
@@ -149,7 +170,15 @@ int main () {
                 }
             }
         } else if (lose_menu) {
-            DrawText("Game Over", 190, 200, 50, LIGHTGRAY);
+            
+            DrawText("Game Over", 190, 200, 50, BLACK);
+            DrawText(TextFormat("Score: %i", snake.score), 190, 270, 20, BLACK);
+            DrawText("Press ENTER to reset", 190, 320, 15, BLACK);
+            if (IsKeyDown(KEY_ENTER)) {
+                lose_menu = false;
+                snake.Reset();
+                food.CalculateNewPosition(snake.body);
+            }
         }
         
         EndDrawing();
