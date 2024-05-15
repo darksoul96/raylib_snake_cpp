@@ -15,14 +15,14 @@ public:
     Texture2D texture;
 
     Food() {
-        Image image = LoadImage("assets/avocado.png");
-        ImageResize(&image, CELL_SIZE, CELL_SIZE);
-        texture = LoadTextureFromImage(image);
-        UnloadImage(image);
+        //Image image = LoadImage("assets/avocado.png");
+        //ImageResize(&image, CELL_SIZE, CELL_SIZE);
+        //texture = LoadTextureFromImage(image);
+        //UnloadImage(image);
     }
 
     ~Food() {
-        UnloadTexture(texture);
+        //UnloadTexture(texture);
     }
 
     Vector2 GenerateRandomPos() {
@@ -48,7 +48,8 @@ public:
 
     
     void DrawFood() {
-        DrawTexture(texture, position.x * CELL_SIZE, position.y * CELL_SIZE, WHITE);
+        DrawRectangle(position.x * CELL_SIZE, position.y * CELL_SIZE, CELL_SIZE, CELL_SIZE, dark_green);
+        //DrawTexture(texture, position.x * CELL_SIZE, position.y * CELL_SIZE, WHITE);
     }
 };
 
@@ -135,7 +136,7 @@ public:
 
 int main () {
 
-    InitWindow(CELL_SIZE*CELL_COUNT, CELL_SIZE*CELL_COUNT, "Retro Snake");
+    InitWindow(CELL_SIZE*CELL_COUNT, CELL_SIZE*CELL_COUNT, "Snake Game by Agustin Ruiz");
     SetTargetFPS(60);
     bool lose_menu = false;
 
