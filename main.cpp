@@ -1,6 +1,7 @@
 #include <iostream>
 #include <raylib.h>
 #include <vector>
+#include <algorithm>
 
 Color green_color = {173, 204, 96, 255};
 Color dark_green = {43, 51, 24, 255};
@@ -18,7 +19,6 @@ public:
         ImageResize(&image, CELL_SIZE, CELL_SIZE);
         texture = LoadTextureFromImage(image);
         UnloadImage(image);
-        position = GenerateRandomPos();
     }
 
     ~Food() {
@@ -31,9 +31,23 @@ public:
         return Vector2{x, y};
     }
 
+    void CalculateNewPosition(std::vector<Vector2> snake_body) {
+        Vector2 new_position;
+        bool is_unique_pos = false;
+        while (!is_unique_pos) {
+            new_position = GenerateRandomPos();
+            auto is_a_match = [new_position](Vector2 elem) {
+                    return (elem.x == new_position.x) && (elem.y == new_position.y);
+            };
+            if (std::none_of(snake_body.cbegin(), snake_body.cend(), is_a_match)) {
+                is_unique_pos = true;
+            }
+        }
+        position = new_position;
+    }
+
     
     void DrawFood() {
-        //DrawRectangle(position.x * CELL_SIZE, position.y * CELL_SIZE, CELL_SIZE, CELL_SIZE, dark_green);
         DrawTexture(texture, position.x * CELL_SIZE, position.y * CELL_SIZE, WHITE);
     }
 };
@@ -76,33 +90,68 @@ public:
         }
     }
 
+    bool DetectFoodEaten(Food food) {
+        auto [food_x, food_y] = food.position;
+        if (body[0].x == food_x && body[0].y == food_y)
+            return true;
+        else
+            return false;
+    }
+
+    bool DetectCollision() {
+        Vector2 head_position = body[0];
+        auto do_not_match = [head_position](Vector2 elem) {
+            return (elem.x != head_position.x) && (elem.y != head_position.y);
+        };
+        if (std::all_of(body.cbegin()+1, body.cend(), do_not_match)) {
+            return true;
+        }
+        return false;
+    }
+
+
+
 };
 
 int main () {
 
     InitWindow(CELL_SIZE*CELL_COUNT, CELL_SIZE*CELL_COUNT, "Retro Snake");
     SetTargetFPS(60);
+    bool lose_menu = false;
 
     Snake snake = Snake();
     Food food = Food();
+    food.CalculateNewPosition(snake.body);
     while(!WindowShouldClose()) {
         WaitTime(0.1);
         BeginDrawing();
-        ClearBackground(green_color);
-        food.DrawFood();
-        snake.DrawSnake();
-        if (IsKeyDown(KEY_UP) && snake.speed[1]>=0) {
-            snake.speed = {0,-1};
-        } else if (IsKeyDown(KEY_RIGHT) && snake.speed[0]<=0) {
-            snake.speed = {1,0};
-        } else if (IsKeyDown(KEY_DOWN) && snake.speed[1]<=0) {
-            snake.speed = {0,1};
-        } else if (IsKeyDown(KEY_LEFT) && snake.speed[0]>=0) {
-            snake.speed = {-1,0};
+        if (!lose_menu) {
+            ClearBackground(green_color);
+            food.DrawFood();
+            snake.DrawSnake();
+            if (IsKeyDown(KEY_UP) && snake.speed[1]>=0) {
+                snake.speed = {0,-1};
+            } else if (IsKeyDown(KEY_RIGHT) && snake.speed[0]<=0) {
+                snake.speed = {1,0};
+            } else if (IsKeyDown(KEY_DOWN) && snake.speed[1]<=0) {
+                snake.speed = {0,1};
+            } else if (IsKeyDown(KEY_LEFT) && snake.speed[0]>=0) {
+                snake.speed = {-1,0};
+            }
+            if (snake.speed != std::vector<double>{0,0}) {
+                snake.MoveSnake();
+                if (snake.DetectFoodEaten(food)) {
+                    food.CalculateNewPosition(snake.body);
+                }
+
+                if (snake.DetectCollision()) {
+                    lose_menu = true;
+                }
+            }
+        } else if (lose_menu) {
+            DrawText("Game Over", 190, 200, 50, LIGHTGRAY);
         }
-        if (snake.speed != std::vector<double>{0,0}) {
-            snake.MoveSnake();
-        }
+        
         EndDrawing();
     }
     CloseWindow();
