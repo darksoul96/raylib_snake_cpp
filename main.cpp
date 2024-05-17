@@ -137,7 +137,8 @@ public:
 int main () {
 
     InitWindow(CELL_SIZE*CELL_COUNT, CELL_SIZE*CELL_COUNT, "Snake Game by Agustin Ruiz");
-    SetTargetFPS(60);
+    SetTargetFPS(90);
+    bool start_menu = true;
     bool lose_menu = false;
 
     Snake snake = Snake();
@@ -146,10 +147,31 @@ int main () {
     while(!WindowShouldClose()) {
         WaitTime(0.1);
         BeginDrawing();
-        if (!lose_menu) {
+        if (start_menu) {
+            ClearBackground(green_color);
+            DrawText("Snake Game", 190, 200, 50, BLACK);
+            DrawText("Press ENTER to start game", 190, 320, 15, BLACK);
+            if (IsKeyDown(KEY_ENTER)) {
+                start_menu = false;
+                snake.Reset();
+                food.CalculateNewPosition(snake.body);
+            }
+        } else if (lose_menu) {
+            DrawText("Game Over", 190, 200, 50, BLACK);
+            DrawText(TextFormat("Score: %i", snake.score), 190, 270, 20, BLACK);
+            DrawText("Press ENTER to reset", 190, 320, 15, BLACK);
+            if (IsKeyDown(KEY_ENTER)) {
+                lose_menu = false;
+                snake.Reset();
+                food.CalculateNewPosition(snake.body);
+            }
+        } else {
             ClearBackground(green_color);
             food.DrawFood();
             snake.DrawSnake();
+            if (snake.speed == std::vector{0.0, 0.0}) {
+                DrawText("Move with arrow keys", 190, 200, 30, BLACK);
+            }
             if (IsKeyDown(KEY_UP) && snake.speed[1]>=0) {
                 snake.speed = {0,-1};
             } else if (IsKeyDown(KEY_RIGHT) && snake.speed[0]<=0) {
@@ -169,16 +191,6 @@ int main () {
                 if (snake.DetectCollision()) {
                     lose_menu = true;
                 }
-            }
-        } else if (lose_menu) {
-            
-            DrawText("Game Over", 190, 200, 50, BLACK);
-            DrawText(TextFormat("Score: %i", snake.score), 190, 270, 20, BLACK);
-            DrawText("Press ENTER to reset", 190, 320, 15, BLACK);
-            if (IsKeyDown(KEY_ENTER)) {
-                lose_menu = false;
-                snake.Reset();
-                food.CalculateNewPosition(snake.body);
             }
         }
         
